@@ -1,115 +1,225 @@
-### New Analysis Model
-
-import pandas as pd
-from statsmodels.stats.outliers_influence import variance_inflation_factor
+import tensorflow as tf
+from reservoirpy.nodes import Reservoir, Ridge, ESN
+import yfinance as yf
+from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
+import numpy as np
+import pandas as pd
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
+from time import perf_counter
 
-# initialize our constants
-path = 'C:/Users/Owner/Downloads/'
-file = 'UsedCarData.xlsx'
 
-# read in our dataframe
-df_car = pd.read_excel(path + file)
+#Download WTI Data - yfinance module website
+data = yf.download("CL=F", start="2000-08-30", end="2024-05-31")
 
-# check datatypes
-df_car.dtypes
+# Isolate Closing Prices + Normalize the data
+close_prices = data['Close'].values.reshape(-1, 1)
+scaler = MinMaxScaler(feature_range=(0, 1))# Took usage of minmaxscaler from Medium LSTM model article, and class. Had issues with TensorFlow version following an update.
+scaled_data = scaler.fit_transform(close_prices)
 
-# check value counts for diff columns
-df_car['Transmission'].value_counts()
-df_car['Drivetrain'].value_counts()
-df_car['Make'].value_counts()
-df_car['Model'].value_counts()
-df_car['Engine'].value_counts()
-df_car['Fuel_Type'].value_counts()
-df_car['Body_Type'].value_counts()
+# Split the data into Training and Validation Sets
+train_size = int(len(scaled_data) * 0.75)
+train_data = scaled_data[:train_size]
+val_data = scaled_data[train_size:]
 
-### do some munging by mapping and converting to int64
-df_car['Engine'][df_car['Engine'] == 'E'] = 0
-df_car['Engine'] = df_car['Engine'].astype('int64')
+# Plot the actual price
+plt.figure(figsize=(10, 6))
+plt.plot(data['Close'])
+plt.xlabel('Time')
+plt.ylabel('Price')
+plt.title('WTI Crude Oil Price per Barrel in Dataset')
 
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Gas/Electric Hybrid'] = 'Gasoline Hybrid'
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Gasoline Fuel'] = 'Gas'
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Gaseous Fuel Compatible'] = 'Flexible'
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Other'] = 'Flexible'
 
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Gas'] = 0
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Gasoline Hybrid'] = 1
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Electric'] = 2
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Flexible'] = 3
-df_car['Fuel_Type'][df_car['Fuel_Type'] == 'Diesel'] = 4
-df_car['Fuel_Type'] = df_car['Fuel_Type'].astype('int64')
 
-df_car['Drivetrain'][df_car['Drivetrain'] == 'AWD'] = 0
-df_car['Drivetrain'][df_car['Drivetrain'] == 'FWD'] = 1
-df_car['Drivetrain'][df_car['Drivetrain'] == '4x4'] = 2
-df_car['Drivetrain'][df_car['Drivetrain'] == 'RWD'] = 3
-df_car['Drivetrain'][df_car['Drivetrain'] == '4WD'] = 4
-df_car['Drivetrain'][df_car['Drivetrain'] == '2WD'] = 5
-df_car['Drivetrain'] = df_car['Drivetrain'].astype('int64')
 
-# correlation matrix
-df_corr = df_car.corr()
+############ Reservoir Model ############
 
-# Regression 1
-model=sm.OLS(df_car.Price, df_car[['Year', 'Kilometres', 'Engine', 'Drivetrain', 'Passengers', 'Doors', 'Fuel_Type', 'City', 'Highway']])
-result=model.fit()
-result.summary()
+res_start = perf_counter()
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
+# Parameters for the reservoir model -
+# the selection followed the paper by Kumar K. (2023) [I tested with altered variables, but there was not much advantage changing model specifications]
 
-# Regression 2
-model=sm.OLS(df_car.Price, df_car[['Year', 'Kilometres', 'Engine', 'Passengers', 'Doors', 'Fuel_Type', 'City', 'Highway']])
-result=model.fit()
-result.summary()
+# Number of Neurons
+units = 20
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
+# Leakrate
+leakrate = 0.75
 
-# Regression 3
-model=sm.OLS(df_car.Price, df_car[['Year', 'Kilometres', 'Engine', 'Passengers', 'Doors', 'Fuel_Type', 'Highway']])
-result=model.fit()
-result.summary()
+spectralradius = 1.025
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
+# Scaling Input
+inputscaling = 1.0
 
-# Regression 4
-model=sm.OLS(df_car.Price, df_car[['Year', 'Kilometres', 'Passengers', 'Doors', 'Fuel_Type', 'Highway']])
-result=model.fit()
-result.summary()
+# "density" of the reservoir matrix
+rcconnectivity = 0.15
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
+# Reservoir Input value for connecting to the Reservoir
+inputconnectivity = 0.2
 
-# Regression 5
-model=sm.OLS(df_car.Price, df_car[['Kilometres', 'Passengers', 'Doors', 'Fuel_Type', 'Highway']])
-result=model.fit()
-result.summary()
+# Output Connections
+fbconnectivity = 1.1
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
+# Regularization Coef for ridge regression
+regularizationcoef = 1e-8
 
-# Regression 6
-model=sm.OLS(df_car.Price, df_car[['Kilometres', 'Passengers', 'Fuel_Type', 'Highway']])
-result=model.fit()
-result.summary()
+# Setting up the Reservoir Layer from ReservoirPy - Written with variables consulting ReservoirPy Module User Guide + Academic Paper.
+reservoir = Reservoir(
+    units=units,
+    sr=spectralradius,
+    input_scaling=inputscaling,
+    lr=leakrate,
+    bias_scaling=1.0,
+    input_connectivity=inputconnectivity,
+    rc_connectivity=rcconnectivity,
+    fb_connectivity=fbconnectivity
+)
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
 
-# Regression 7
-model=sm.OLS(df_car.Price, df_car[['Kilometres', 'Fuel_Type', 'Highway']])
-result=model.fit()
-result.summary()
+# Create the output adjustment layer using the Ridge Calculation from ReservoirPy
+readout = Ridge(
+    ridge=regularizationcoef
+    )
 
-variables=result.model.exog
-vif=[variance_inflation_factor(variables, i) for i in range(variables.shape[1])]
-vif
+# Create an esn using the reservoir and assigning it to the readout connections
+esn = reservoir >> readout
+
+# Set up input and output of training by shifting.
+train_input = train_data[:-1]
+train_output = train_data[1:]
+
+# Fit the esn model onto the training data.
+esn.fit(train_input, train_output)
+
+#Set up input and output of validation by shifting.
+val_input = val_data[:-1]
+val_output = esn.run(val_input)
+
+# Take the inverse transform the predictions
+val_output = scaler.inverse_transform(val_output)
+actual_output = scaler.inverse_transform(val_data[1:])
+
+res_end = perf_counter()
+
+############ End of Reservoir Model ############
+
+
+
+
+# Plot the Reservoir results
+
+plt.figure(figsize=(10, 6))
+plt.plot(data.index[train_size + 1:], actual_output, color='blue', label='Actual Prices')
+plt.plot(data.index[train_size + 1:], val_output, color='red', label='Predicted Prices')
+plt.xlabel('Time')
+plt.ylabel('Price')
+plt.title('Crude Oil Price Prediction using Reservoir Computing')
+plt.legend()
+
+
+
+
+############ LSTM Model ############
+
+lstm_start = perf_counter() # From Class
+
+# Split the data into training and testing sets (Using same split set as Reservoir)
+
+# Define a function for time steps for a list. - Easier to do this way with the LSTM model. Had some indexing issues with the array.
+def create_sequences(data, sequence_length):
+    X = []
+    y = []
+    for i in range(sequence_length, len(data)):
+        X.append(data[i-sequence_length:i, 0])
+        y.append(data[i, 0])
+    return np.array(X), np.array(y)
+
+# Setup a timestep consideration for certain period of days - Discussed in the paper:
+# I originally selected 60 days, but found lesser error at 120, taking in a period of time into memory.
+time_step = 120
+
+# Subset into train and test by list. 
+X_train, y_train = create_sequences(train_data, time_step)
+X_test, y_test = create_sequences(val_data, time_step)
+
+# Reshape input to be [samples, time steps, features] which is required for LSTM
+X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
+# Build the LSTM model - Used class material and some reference images/cited google article in consideration of structure.
+model = tf.keras.Sequential()
+model.add(tf.keras.layers.LSTM(units=50, return_sequences=True, input_shape=(time_step, 1)))
+model.add(tf.keras.layers.Dropout(0.2))
+model.add(tf.keras.layers.Dense(25))
+model.add(tf.keras.layers.LSTM(units=50, return_sequences=False))
+model.add(tf.keras.layers.Dense(1))
+
+# Compile the model
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+# Add patience to the model to stop if uneccessary 
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+
+# Train the model
+history = model.fit(X_train, y_train, batch_size=32, epochs=6, validation_data=(X_test, y_test), callbacks=[early_stopping])
+
+# Predictions
+
+# Predict the prices
+predicted_prices = model.predict(X_test)
+predicted_prices = scaler.inverse_transform(predicted_prices)
+
+# Inverse transform the actual prices
+actual_prices = scaler.inverse_transform(y_test.reshape(-1, 1))
+
+lstm_end = perf_counter()
+
+############ End of LSTM Model ############
+
+
+
+
+
+# Plot the LSTM results
+
+plt.figure(figsize=(10, 6))
+plt.plot(data.index[train_size + time_step:], actual_prices, color='blue', label='Actual Prices')
+plt.plot(data.index[train_size + time_step:], predicted_prices, color='red', label='Predicted Prices')
+plt.xlabel('Time')
+plt.ylabel('Price')
+plt.title('Crude Oil Price Prediction using LSTM')
+plt.legend()
+plt.show()
+
+
+
+
+############ Calculater Error Metrics ############
+
+# Calculate LSTM Error
+
+def calculate_metrics(actual, predicted):
+    mse = mean_squared_error(actual, predicted)
+    rmse = np.sqrt(mse)
+    nrmse = rmse / (np.max(actual) - np.min(actual))
+    mape = mean_absolute_percentage_error(actual, predicted)
+    return mse, rmse, nrmse, mape
+
+mse, rmse, nrmse, mape = calculate_metrics(actual_prices, predicted_prices)
+
+print(f"LSTM Performance: {lstm_end-lstm_start} seconds")
+print(f"LSTM MSE: {mse}")
+print(f"LSTM RMSE: {rmse}")
+print(f"LSTM NRMSE: {nrmse}")
+print(f"LSTM MAPE: {mape}")
+
+# Calculate Reservoir Error
+
+mse, rmse, nrmse, mape = calculate_metrics(actual_output, val_output)
+
+print(f"Reservoir Performance: {res_end - res_start} seconds")
+print(f"Reservoir MSE: {mse}")
+print(f"Reservoir RMSE: {rmse}")
+print(f"Reservoir NRMSE: {nrmse}")
+print(f"Reservoir MAPE: {mape}")
+
+print(f"Comparative Performance: {abs((lstm_end-lstm_start)-(res_end - res_start))} seconds difference.")
