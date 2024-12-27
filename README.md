@@ -17,4 +17,6 @@ This model is a modification of the FNN that is ideal for imagery, via pooling. 
 
 The recurrent model differs from FNNs in that the data flows in multiple directions allowing for prior state connections, making it better for handling temporal and sequential dependencies. Additionally, holding these states retains memories in "hidden states". Lastly, this model is more complex than the FNN and is subject to issues through the vanishing and exploding gradient problem.
 
-**This is why we utilize the Recurrent Neural Network model.**
+***This is why we utilize the Recurrent Neural Network model.***
+
+So, when considering an RNN, there is a particular architecture.
