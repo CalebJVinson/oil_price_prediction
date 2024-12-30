@@ -120,7 +120,7 @@ plt.legend()
 
 ############ LSTM Model ############
 
-lstm_start = perf_counter() # From Class
+lstm_start = perf_counter()
 
 # Split the data into training and testing sets (Using same split set as Reservoir)
 
