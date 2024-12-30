@@ -21,8 +21,34 @@ The recurrent model differs from FNNs in that the data flows in multiple directi
 
 So, when considering an RNN, there are particular approaches that can be taken to determine the memory mechanisms.
 
-# Long Short-Term Memory Model (LSTM)
+# Long Short-Term Memory (LSTM) Model
 
-For this project I used the LSTM model to predict prices in the West Texas Intermediate (WTI) Crude Oil Futures [CL=F]. To model this, I used a straightforward split of 70% training data and 30% testing data over the available periods. For the LSTM model the goal is to track the memory along with three additional items: inputs, outputs, and forget gates. 
+For this project I used the LSTM model to predict prices in the West Texas Intermediate (WTI) Crude Oil Futures [CL=F]. To model this, I used a straightforward split of 70% training data and 30% testing data over 120 active trading days. For the LSTM model the goal is to track the memory along with three additional items: inputs, outputs, and forget gates. 
 
-The memory mechanisms are what primarily differentiate this model as the forget gates control the memory retention. These gates follow the logit function, or standardized logistic, by assigning sigmoidal activation functions that round upward to 1 for information identified as helpful to the prediction over time. This is helpful as we train down the set since this accumulation of short term memories represents the "Long" in LSTM.
+The memory mechanisms are what primarily differentiate this model as the forget gates control the memory retention. These gates follow an activation function, in this casesigmoidal activation functions that round upward to 1 for information identified as helpful to the prediction over time. This is helpful as we train down the set since this accumulation of short term memories represents the "Long" in LSTM.
+
+We set up the three items as functions:
+$$input_t = \sigma(w_i \cdot [h_(t-1), x_t] + b_i)$$
+
+# Echo State Network (ESN) - Reservoir model
+
+For the comparison model we use the ESN Reservoir model
+
+# LSTM v. ESN Model
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Feature}            & \textbf{Echo State Network (ESN)} & \textbf{LSTM}                    \\ \midrule
+\textbf{Training Method}    & Solely Trains Output   & Each Weight in model is trained          \\
+\textbf{Changes}   & Reservoir is composed of fixed nodes           & Utilizes gates to control changes in nodes and retention       \\
+\textbf{Computational Cost} & Lower computation due to fixed nodes                               & Readjusts the nodes to better fit prediction                             \\
+\textbf{Long-Term Memory}   & Limited                           & Excellent                        \\
+\textbf{Data Requirements}  & Works with small datasets         & Requires larger datasets         \\
+\textbf{Adaptability}       & Less adaptable                    & Highly adaptable                 \\
+\textbf{Use Case}           & Moderate temporal dependencies    & Complex and long-term dependencies \\ \bottomrule
+\end{tabular}
+\caption{Comparison of ESN and LSTM for Time Series Tasks}
+\label{tab:esn_vs_lstm}
+\end{table}
