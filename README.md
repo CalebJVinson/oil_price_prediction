@@ -28,7 +28,14 @@ For this project I used the LSTM model to predict prices in the West Texas Inter
 The memory mechanisms are what primarily differentiate this model as the forget gates control the memory retention. These gates follow an activation function, in this casesigmoidal activation functions that round upward to 1 for information identified as helpful to the prediction over time. This is helpful as we train down the set since this accumulation of short term memories represents the "Long" in LSTM.
 
 We set up the three items as functions:
+
 $$input_t = \sigma(w_i \cdot [h_(t-1), x_t] + b_i)$$
+
+$$output_t = \sigma(w_o \cdot [h_(t-1), x_t] + b_o)$$
+
+$$forget_t = \sigma(w_f \cdot [h_(t-1), x_t] + b_f)$$
+
+where the $\sigma$ is the sigmoid activation function, the $h_(t-1)$ is the tracking info from the prior period, the $x_t$ is our input information, the $w_(...)$ is our weights, and the $b_(...)$ values are the biases experienced for each of the gates.
 
 # Echo State Network (ESN) - Reservoir model
 
