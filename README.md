@@ -43,24 +43,7 @@ For the comparison model we use the ESN Reservoir model
 
 # LSTM v. ESN Model
 
-\begin{table}[h!]
-\centering
-\begin{tabular}{@{}lcc@{}}
-\toprule
-\textbf{Feature}            & \textbf{Echo State Network (ESN)} & \textbf{LSTM}                    \\ \midrule
-\textbf{Training Method}    & Solely Trains Output   & Each Weight in model is trained          \\
-\textbf{Changes}   & Reservoir is composed of fixed nodes           & Utilizes gates to control changes in nodes and retention       \\
-\textbf{Computational Cost} & Lower computation due to fixed nodes                               & Readjusts the nodes to better fit prediction                             \\
-\textbf{Long-Term Memory}   & Limited                           & Excellent                        \\
-\textbf{Data Requirements}  & Works with small datasets         & Requires larger datasets         \\
-\textbf{Adaptability}       & Less adaptable                    & Highly adaptable                 \\
-\textbf{Use Case}           & Moderate temporal dependencies    & Complex and long-term dependencies \\ \bottomrule
-\end{tabular}
-\caption{Comparison of ESN and LSTM for Time Series Tasks}
-\label{tab:esn_vs_lstm}
-\end{table}
-
-| **Feature**            | **Echo State Network (ESN)**     | **LSTM (Long Short-Term Memory)**      |
+| **Comparisons**            | **Echo State Network (ESN)**     | **LSTM (Long Short-Term Memory)**      |
 |-------------------------|----------------------------------|----------------------------------------|
 | **Training Method**     | Solely Trains Output | Each Weight in model is trained               |
 | **Information Changes**    | Reservoir is composed of fixed nodes        | Readjusts the nodes to better fit prediction            |
