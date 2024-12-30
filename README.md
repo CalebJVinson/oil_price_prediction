@@ -19,4 +19,10 @@ The recurrent model differs from FNNs in that the data flows in multiple directi
 
 ***This is why we utilize the Recurrent Neural Network model.***
 
-So, when considering an RNN, there is a particular architecture.
+So, when considering an RNN, there are particular approaches that can be taken to determine the memory mechanisms.
+
+# Long Short-Term Memory Model (LSTM)
+
+For this project I used the LSTM model to predict prices in the West Texas Intermediate (WTI) Crude Oil Futures [CL=F]. To model this, I used a straightforward split of 70% training data and 30% testing data over the available periods. For the LSTM model the goal is to track the memory along with three additional items: inputs, outputs, and forget gates. 
+
+The memory mechanisms are what primarily differentiate this model as the forget gates control the memory retention. These gates follow the logit function, or standardized logistic, by assigning sigmoidal activation functions that round upward to 1 for information identified as helpful to the prediction over time. This is helpful as we train down the set since this accumulation of short term memories represents the "Long" in LSTM.
