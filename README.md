@@ -41,15 +41,3 @@ where the $\sigma$ is the sigmoid activation function, the $h_(t-1)$ is the trac
 
 For the comparison model we use the ESN Reservoir model
 
-# LSTM v. ESN Model
-
-| **Comparisons**            | **Echo State Network (ESN)**     | **LSTM (Long Short-Term Memory)**      |
-|-------------------------|----------------------------------|----------------------------------------|
-| **Training Method**     | Solely Trains Output | Each Weight in model is trained               |
-| **Information Changes**    | Reservoir is composed of fixed nodes        | Readjusts the nodes to better fit prediction            |
-| **Computational Cost**  | Low                             | High                                  |
-| **Long-Term Memory**    | Limited                         | Excellent                             |
-| **Data Requirements**   | Works with small datasets       | Requires larger datasets              |
-| **Adaptability**        | Less adaptable                  | Highly adaptable                      |
-| **Use Case**            | Moderate temporal dependencies  | Complex and long-term dependencies    |
-
