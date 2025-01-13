@@ -39,5 +39,6 @@ where the $\sigma$ is the sigmoid activation function, the $h_(t-1)$ is the trac
 
 # Echo State Network (ESN) - Reservoir model
 
-For the comparison model we use the ESN Reservoir model
+For the comparison model we use the ESN Reservoir model, which was more for experiential purposes than for true application. The benefits of ESN are the usage of it for sequential data handling and its *reservoir* of nodes that fit between the input and output layers. Since the weights are randomly initialized and interconnected, and fixed, the "echo" captures signals identified in the input layer. They are helpful for time series, but are usurped by LSTM models typically, which was the case with the model used for this project. The resrvoir units are fixed but are adjusted in the training process based on the activation function. Ultimately, the *echo* of the historical information is what is beneficial to this process. There are short term memory implications to consider in this model, but the LSTM model won out in this scenario.
 
+#Future Interests: Modeling based on Virtual Barrels by Dr. Ilia Bouchouev
