@@ -29,11 +29,11 @@ The memory mechanisms are what primarily differentiate this model as the forget 
 
 We set up the three items as functions:
 
-$$input_t = \sigma(w_i \cdot [h_(t-1), x_t] + b_i)$$
+$$input_t = \sigma(w_i \cdot [h_{t-1}, x_t] + b_i)$$
 
-$$output_t = \sigma(w_o \cdot [h_(t-1), x_t] + b_o)$$
+$$output_t = \sigma(w_o \cdot [h_{t-1}, x_t] + b_o)$$
 
-$$forget_t = \sigma(w_f \cdot [h_(t-1), x_t] + b_f)$$
+$$forget_t = \sigma(w_f \cdot [h_{t-1}, x_t] + b_f)$$
 
 where the $\sigma$ is the sigmoid activation function, the $h_(t-1)$ is the tracking info from the prior period, the $x_t$ is our input information, the $w_(...)$ is our weights, and the $b_(...)$ values are the biases experienced for each of the gates.
 
